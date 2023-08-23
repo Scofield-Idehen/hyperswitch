@@ -100,6 +100,7 @@ shift4.base_url = "https://api.shift4.com/"
 square.base_url = "https://connect.squareupsandbox.com/"
 stax.base_url = "https://apiprod.fattlabs.com/"
 stripe.base_url = "https://api.stripe.com/"
+stripeconnect.base_url = "https://api.stripe.com/"
 stripe.base_url_file_upload = "https://files.stripe.com/"
 worldline.base_url = "https://eu.sandbox.api-ingenico.com/"
 worldpay.base_url = "https://try.access.worldpay.com/"
@@ -154,6 +155,7 @@ cards = [
     "square",
     "stax",
     "stripe",
+    "stripeconnect",
     "trustpay",
     "tsys",
     "wise",
