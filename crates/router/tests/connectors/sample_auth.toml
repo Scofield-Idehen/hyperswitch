@@ -171,4 +171,6 @@ key1 = "transaction key"
 
 [square]
 api_key="API Key"
-\n\n[stripeconnect]\napi_key="API Key"
+
+[stripe_connect]
+api_key="API Key"
