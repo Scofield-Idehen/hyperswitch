@@ -28,6 +28,16 @@ pub enum IncomingWebhookEvent {
     // dispute has been unsuccessfully challenged
     DisputeLost,
     EndpointVerification,
+
+    // Payouts
+    PayoutProcessing,
+    PayoutCancelled,
+    PayoutFundsConverted,
+    PayoutSent,
+    PayoutExpired,
+    PayoutReversed,
+    PayoutBouncedBack,
+    PayoutRefunded,
 }
 
 pub enum WebhookFlow {
@@ -37,6 +47,7 @@ pub enum WebhookFlow {
     Subscription,
     ReturnResponse,
     BankTransfer,
+    Payout,
 }
 
 impl From<IncomingWebhookEvent> for WebhookFlow {
@@ -61,6 +72,14 @@ impl From<IncomingWebhookEvent> for WebhookFlow {
             IncomingWebhookEvent::EndpointVerification => Self::ReturnResponse,
             IncomingWebhookEvent::SourceChargeable
             | IncomingWebhookEvent::SourceTransactionCreated => Self::BankTransfer,
+            IncomingWebhookEvent::PayoutProcessing
+            | IncomingWebhookEvent::PayoutCancelled
+            | IncomingWebhookEvent::PayoutFundsConverted
+            | IncomingWebhookEvent::PayoutSent
+            | IncomingWebhookEvent::PayoutExpired
+            | IncomingWebhookEvent::PayoutReversed
+            | IncomingWebhookEvent::PayoutBouncedBack
+            | IncomingWebhookEvent::PayoutRefunded => Self::Payout,
         }
     }
 }

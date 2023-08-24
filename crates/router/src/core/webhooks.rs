@@ -344,6 +344,18 @@ pub async fn get_or_update_dispute_object(
     }
 }
 
+pub async fn payouts_webhook_flow<W: types::OutgoingWebhookType>(
+    state: AppState,
+    merchant_account: domain::MerchantAccount,
+    webhook_details: api::IncomingWebhookDetails,
+    source_verified: bool,
+    connector: &(dyn api::Connector + Sync),
+    request_details: &api::IncomingWebhookRequestDetails<'_>,
+    event_type: api_models::webhooks::IncomingWebhookEvent,
+) -> CustomResult<(), errors::ApiErrorResponse> {
+    metrics::INCOMING_PAYOUTS_WEBHOOK_METRIC.add(&metrics::CONTEXT, 1, &[]);
+}
+
 #[instrument(skip_all)]
 pub async fn disputes_incoming_webhook_flow<W: types::OutgoingWebhookType>(
     state: AppState,
@@ -832,6 +844,18 @@ pub async fn webhooks_core<W: types::OutgoingWebhookType>(
             )
             .await
             .attach_printable("Incoming bank-transfer webhook flow failed")?,
+
+            api::WebhookFlow::Payout => payouts_webhook_flow::<W>(
+                state.clone(),
+                merchant_account,
+                webhook_details,
+                source_verified,
+                *connector,
+                &request_details,
+                event_type,
+            )
+            .await
+            .attach_printable("Incoming payouts webhook flow failed")?,
 
             api::WebhookFlow::ReturnResponse => {}
 
