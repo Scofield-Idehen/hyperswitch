@@ -570,13 +570,44 @@ impl<T: DatabaseStore> PaymentAttemptInterface for KVRouterStore<T> {
         merchant_id: &str,
         storage_scheme: MerchantStorageScheme,
     ) -> error_stack::Result<PaymentAttempt, errors::StorageError> {
-        self.router_store
-            .find_payment_attempt_last_successful_attempt_by_payment_id_merchant_id(
-                payment_id,
-                merchant_id,
-                storage_scheme,
-            )
-            .await
+        let database_call = || {
+            self.router_store
+                .find_payment_attempt_last_successful_attempt_by_payment_id_merchant_id(
+                    payment_id,
+                    merchant_id,
+                    storage_scheme,
+                )
+        };
+        match storage_scheme {
+            MerchantStorageScheme::PostgresOnly => database_call().await,
+            MerchantStorageScheme::RedisKv => {
+                let lookup_id = format!("{merchant_id}_{payment_id}");
+                let lookup = self.get_lookup_by_lookup_id(&lookup_id).await?;
+
+                let key = &lookup.pk_id;
+                let pattern = generate_hscan_pattern_for_attempt(&lookup.sk_id);
+
+                let mut payment_attempts: Vec<PaymentAttempt> = self
+                    .get_redis_conn()
+                    .map_err(|er| {
+                        let error = format!("{}", er);
+                        er.change_context(errors::StorageError::RedisError(error))
+                    })?
+                    .hscan_and_deserialize(key, &pattern, None)
+                    .await
+                    .change_context(errors::StorageError::KVError)?;
+
+                // Sort by descending order of modified_at
+                payment_attempts.sort_by(|a, b| b.modified_at.cmp(&a.modified_at));
+                payment_attempts
+                    .iter()
+                    .find(|&pa| pa.status == api_models::enums::AttemptStatus::Charged)
+                    .cloned()
+                    .ok_or(
+                        errors::StorageError::ValueNotFound(String::from("PaymentAttempt")).into(),
+                    )
+            }
+        }
     }
 
     async fn find_payment_attempt_by_merchant_id_connector_txn_id(
