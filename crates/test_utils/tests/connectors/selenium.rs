@@ -881,7 +881,7 @@ fn get_firefox_profile_path() -> Result<String, WebDriverError> {
         base_path.push_str(r#"/Library/Application Support/Firefox/Profiles/hs-test"#);
     //Issue: 1573
     } else if env::consts::OS == "linux" {
-        return Ok(r#"/home/runner/.mozilla/firefox/hs-test"#.to_string());
+        return Ok(r#"${HOME}/.mozilla/firefox/hs-test"#.to_string());
     }
     Ok(base_path)
 }

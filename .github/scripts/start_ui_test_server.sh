@@ -6,16 +6,7 @@ mkdir tests
 
 COUNT=0
 # Download connector ui tests
-while [ ! -f $HOME/target/test/connector_tests.json ]
-do
-    if [ $COUNT -gt 10 ];
-    then
-        exit 1
-    fi
-    COUNT=$((COUNT+1))
-    sleep 2
-    wget $UI_TESTCASES_PATH && mv testcases $HOME/target/test/connector_tests.json
-done
+curl -L --retry 10 --retry-delay 2 -o "$HOME/target/test/connector_tests.json" "$UI_TESTCASES_PATH" || exit 1
 
 firefox --version
 rm -rf $HOME/.mozilla
